@@ -1,0 +1,4 @@
+pre-commit:
+  commands:
+    secrets:
+      run: mise exec -- gitleaks protect --staged --redact --no-banner

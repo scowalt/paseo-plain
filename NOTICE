@@ -1,0 +1,9 @@
+Paseo Plain
+Copyright 2026 scowalt
+
+This project includes code adapted from Paseo, licensed under Apache-2.0.
+See client/whole-answer.ts and LICENSES/Paseo-Apache-2.0.txt.
+
+This project includes prompt wording adapted from Claudish to English.
+Copyright (c) 2026 Mike Gvozdev. Licensed under MIT.
+See server/prompt.ts and LICENSES/Claudish-MIT.txt.
