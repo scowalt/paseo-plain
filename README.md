@@ -93,7 +93,9 @@ npm test
 npm run typecheck
 ```
 
-Tests use fake external model processes. Native layout and theme acceptance require separate client checks. The live smoke test requires explicit consent and `PASEO_PLAIN_LIVE_TEST=1`; routine tests never run it.
+Tests use fake external model processes. For a packaging check, set `PASEO_RUNTIME_MODULE` to an installed Paseo 0.8 `server/plugins/runtime.js` module and run `node tests/paseo-install-smoke.mjs /path/to/prepared/checkout`. This loads and reloads the clean checkout through Paseo's real plugin runtime with a temporary home and a fake session host. It starts no daemon listener and makes no model calls.
+
+Native layout and theme acceptance require separate client checks. The live smoke test requires explicit consent and `PASEO_PLAIN_LIVE_TEST=1`; routine tests never run it.
 
 `client/` owns native display code, `server/` owns worker and persistence code, and `shared/` owns typed request contracts. Keep those runtime boundaries intact. Changes to prompt or completion rules must advance the prompt policy version.
 
