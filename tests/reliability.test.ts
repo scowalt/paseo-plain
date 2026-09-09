@@ -49,6 +49,7 @@ test('daemon reloads reuse a private cache without saving original text', async 
     // fixture ACL rather than treating chmod(0600) as a privacy guarantee.
     const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', `
       $ErrorActionPreference = 'Stop'
+      $env:PSModulePath = "$PSHOME\\Modules"
       $broad = @('S-1-1-0','S-1-5-11','S-1-5-32-545')
       $unsafe = @((Get-Acl -LiteralPath $env:PASEO_PLAIN_ACL_TEST).Access | Where-Object {
         $_.AccessControlType -eq 'Allow' -and

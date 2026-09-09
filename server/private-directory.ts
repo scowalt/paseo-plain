@@ -13,6 +13,8 @@ export async function preparePrivateDirectory(directory: string): Promise<void> 
   if (process.platform !== 'win32') return;
   const script = `
 $ErrorActionPreference = 'Stop'
+# A daemon launched from PowerShell 7 may inherit modules incompatible with 5.1.
+$env:PSModulePath = "$PSHOME\\Modules"
 $directory = $env:PASEO_PLAIN_PRIVATE_DIRECTORY
 $owner = [System.Security.Principal.WindowsIdentity]::GetCurrent().User
 $identities = @($owner, [System.Security.Principal.SecurityIdentifier]::new('S-1-5-18'), [System.Security.Principal.SecurityIdentifier]::new('S-1-5-32-544'))
