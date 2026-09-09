@@ -67,6 +67,24 @@ test('daemon reloads reuse a private cache without saving original text', async 
   finally { await restored.dispose(); }
 });
 
+test('unavailable private storage disables rewriting and cannot be overridden by saving settings', async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'plain-bad-storage-'));
+  t.after(() => rm(directory, {recursive: true, force: true}));
+  const file = join(directory, 'not-a-directory');
+  await writeFile(file, 'Keep this file.');
+  let calls = 0;
+  const service = createRewriteService({directory: file, complete: async () => { calls++; return 'No.'; }});
+  try {
+    const config = await service.configuration();
+    assert.ok(config.error);
+    assert.equal(config.values.enabled, false);
+    await assert.rejects(service.configure({revision: config.revision, values: {...config.values, enabled: true}}), /private-storage-unavailable/);
+    assert.deepEqual(await service.enqueue({agentId: 'test', original: 'Sample.'}), {status: 'disabled'});
+    assert.equal(calls, 0);
+    assert.equal(await readFile(file, 'utf8'), 'Keep this file.');
+  } finally { await service.dispose(); }
+});
+
 test('prior prompt policies cannot supply cached text or trigger automatic regeneration', async (t) => {
   const { service, directory } = await fixture(t, async () => { throw new Error('must not call the model'); });
   const { values } = await service.configuration();

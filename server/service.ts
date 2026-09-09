@@ -1,10 +1,11 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 import { configSchema, configurationResultSchema, requestSchema, type Configuration, type RewriteRequest, type RewriteResult } from '../shared/contracts';
 import { completeWithPi, PROMPT_VERSION, type Complete } from './pi-worker';
 import { rewriteText } from './rewriter';
+import { preparePrivateDirectory } from './private-directory';
 
 const MAX_ENTRIES = 200, MAX_BYTES = 4_000_000, TTL = 24 * 60 * 60 * 1000;
 const persistedSchema = z.array(z.object({ key: z.string(), agentId: z.string(), at: z.number(), text: z.string().max(64000) })).max(MAX_ENTRIES);
@@ -12,13 +13,13 @@ type Entry = { agentId: string; at: number; result: RewriteResult; controller?: 
 
 export function createRewriteService({ directory, complete = completeWithPi }: { directory: string; complete?: Complete }) {
   let values = configSchema.parse({}), revision = 0, error: string | null = null, stopped = false;
-  let active = 0;
+  let active = 0, storageReady = false;
   const cache = new Map<string, Entry>();
   const queue: Array<() => Promise<void>> = [];
   const jobs = new Set<Promise<void>>();
   let writes = Promise.resolve();
   const atomic = async (file: string, data: unknown) => {
-    await mkdir(directory, { recursive: true, mode: 0o700 });
+    if (!storageReady) throw new Error('private-storage-unavailable');
     const path = join(directory, file), temp = `${path}.${randomUUID()}.tmp`;
     await writeFile(temp, JSON.stringify(data), { mode: 0o600, flag: 'wx' });
     await rename(temp, path);
@@ -45,6 +46,11 @@ export function createRewriteService({ directory, complete = completeWithPi }: {
     return writes;
   };
   const ready = (async () => {
+    try { await preparePrivateDirectory(directory); storageReady = true; }
+    catch {
+      error = 'Private storage could not be prepared. Rewriting is off.';
+      return;
+    }
     try {
       const saved = configurationResultSchema.parse(JSON.parse(await readFile(join(directory, 'configuration.json'), 'utf8')));
       values = saved.values; revision = saved.revision;

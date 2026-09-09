@@ -75,7 +75,7 @@ paseo plugin disable paseo-plain
 
 ## Storage and limits
 
-Configuration and cache files live in `${PASEO_HOME:-~/.paseo}/plugin-data/paseo-plain/`. Keep this directory private. New POSIX directories use mode `0700` and files use `0600`. Windows inherits NTFS permissions from the containing directory, so use a private user-profile location rather than a shared folder. Cached rewrites are not encrypted at rest.
+Configuration and cache files live in `${PASEO_HOME:-~/.paseo}/plugin-data/paseo-plain/`. Keep this directory private. New POSIX directories use mode `0700` and files use `0600`. On Windows, the plugin restricts its storage to the current user, SYSTEM, and administrators through NTFS permissions. If it cannot prepare private storage, rewriting stays off. Still use a private user-profile location rather than a shared folder. Cached rewrites are not encrypted at rest.
 
 The worker allows two concurrent requests and twenty waiting requests. Input is limited to 32,000 characters. The default deadline is 45 seconds, followed by termination and a one-second forced-exit fallback. Output limits are 8 MiB of events, 1 MiB per record, and 128,000 bytes of final text.
 
