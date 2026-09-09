@@ -22,7 +22,7 @@ Plugins are trusted, unsandboxed code. Server code and dependency preparation ca
 On the daemon machine:
 
 ```sh
-paseo plugin add https://github.com/scowalt/paseo-plain.git --ref release
+paseo plugin add https://github.com/scowalt/paseo-plain.git --ref main
 paseo plugin ls --json
 ```
 
@@ -63,7 +63,9 @@ paseo plugin update paseo-plain
 paseo plugin ls --json
 ```
 
-The `release` branch moves only for reviewed releases. Version tags identify fixed releases. Paseo follows branches for updates; an installation pinned to a tag or commit does not advance to a newer release automatically.
+New installations track `main`. Updates use its latest commit without requiring a new GitHub release or package version. Version tags remain optional fixed points. An installation pinned to a tag or commit does not advance automatically.
+
+[Machine setup](https://github.com/scowalt/machine-setup-scripts#paseo-plain-plugin) migrates matching, enabled `release` installations on their next setup run. Paseo 0.8 cannot change an installed branch in place. Setup makes private recovery copies, uses a one-time remove/add operation under the same ID, and preserves preferences and cache. Failed or interrupted migrations stop for review rather than retry destructively. Directory installations, other sources, pinned revisions, and disabled choices remain unchanged. See the [migration recovery procedure](https://github.com/scowalt/machine-setup-scripts#paseo-plain-migration-recovery).
 
 Git preparation and validation failures leave the existing installation in place. A command timeout does not prove the daemon stopped processing the request. Inspect plugin status before retrying. Do not restart the daemon to update this plugin.
 
