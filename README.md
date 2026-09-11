@@ -42,7 +42,7 @@ Disabling manual rewriting removes the display transformer within five seconds. 
 
 ## Prompt and preservation
 
-The built-in prompt in `server/prompt.ts` rewrites to English. It removes repeated ideas, rhetorical framing, and unnecessary metaphors while retaining substantive facts, conditions, permissions, comparisons, uncertainty, and implications.
+The built-in prompt in `server/prompt.ts` asks for a fresh whole-answer rewrite in English, not sentence-by-sentence word substitutions. It defaults to connected paragraphs and combines related facts across rhetorical sections. Each subject's changes, checks, and limits belong together instead of in separate report categories. Full-answer examples show this regrouping, status reports and recommendations becoming prose, and a useful procedure staying a list. Every substantive fact, condition, permission, comparison, uncertainty, and implication must remain. There is no target word count or compression ratio. See `CONTEXT.md` for the distinction between a rewrite and a summary.
 
 **Voice instructions** is an additional style preference, not the full prompt. It is appended to the built-in prompt. Saved preferences survive updates. Exact-copy rules take precedence over style and compression.
 
@@ -52,7 +52,11 @@ Code fences, inline code, recognized commands, paths, URLs, quoted text, and num
 
 The completion reader requires a successful final assistant response, matching terminal records, and a zero process exit. It rejects truncation, errors, tool requests, and incomplete or conflicting output. It never returns reasoning or streamed fragments as the rewrite.
 
-These checks cannot prove semantic equivalence. Use **Compare** for important answers. The longer prompt uses more input tokens per requested rewrite. No real-model quality comparison was performed for this release.
+These checks cannot prove semantic equivalence. Use **Compare** for important answers. The longer prompt uses more input tokens per requested rewrite, and more restructuring does not always mean fewer words.
+
+An initial six-call comparison on short synthetic answers was inconclusive. After more explicit subject-centered instructions, six additional calls on harder examples showed a structural difference: the old prompt retained three headings and nine bullets in an engineering report, while policy 5 produced four prose paragraphs. A technical explanation changed from seven blocks with two bullets to five prose paragraphs. Both prompts retained the useful table and ordered, nested procedure in the third case. Manual review found the listed facts and conditions retained in the two prose cases; all six outputs passed exact-copy and completion checks.
+
+This is a small synthetic comparison, not proof of reliability on every answer. Both variants used wording in the procedure that could imply who must personally perform a review where the source did not explicitly assign that role. Exact-copy validation cannot detect that kind of ambiguity.
 
 Speaker framing and Markdown protection wording retain attribution to [Claudish v0.9.0](https://github.com/gvzdv/claudish-to-english/tree/bf271f95fd2c1a7d00ea545bbc6de44a1b6a1d3c). Block splitting is adapted from Paseo. See `NOTICE` and `LICENSES/` for the upstream notices.
 
@@ -98,6 +102,10 @@ npm run typecheck
 Tests use fake external model processes. For a packaging check, set `PASEO_RUNTIME_MODULE` to an installed Paseo 0.8 `server/plugins/runtime.js` module and run `node tests/paseo-install-smoke.mjs /path/to/prepared/checkout`. This loads and reloads the clean checkout through Paseo's real plugin runtime with a temporary home and a fake session host. It starts no daemon listener and makes no model calls.
 
 Native layout and theme acceptance require separate client checks. The live smoke test requires explicit consent and `PASEO_PLAIN_LIVE_TEST=1`; routine tests never run it.
+
+For an explicitly approved, synthetic-only **Test Pi rewrite** comparison, run `PASEO_PLAIN_PROMPT_COMPARISON=1 node --import tsx tests/prompt-comparison.ts`. It makes six sequential model requests, using the same worker and default configuration for policy 4 and the current prompt. Add `PASEO_PLAIN_PROMPT_COMPARISON_SUITE=hard` to select the longer reports, explanation, and mixed reference/procedure instead of the basic cases. Each invocation needs its own six-call authorization.
+
+The tool reads the reviewed policy-4 prompt from commit `77d32ec`, which must be available locally. It does not connect to a daemon, read saved plugin settings, or retry failed calls. It writes a private temporary report with synthetic inputs, outputs, timing, and a fact checklist for manual review. Block and word counts are descriptive, not quality scores. The source fixtures are separate from the prompt's examples and are never instructions to execute. Routine tests only check that this tool refuses to run without consent or with an unknown suite.
 
 `client/` owns native display code, `server/` owns worker and persistence code, and `shared/` owns typed request contracts. Keep those runtime boundaries intact. Changes to prompt or completion rules must advance the prompt policy version.
 

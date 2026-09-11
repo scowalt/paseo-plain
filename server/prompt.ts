@@ -4,9 +4,38 @@
 // Copyright (c) 2026 Mike Gvozdev. MIT: LICENSES/Claudish-MIT.txt.
 // Sources for retained wording: rewrite.sh:320 and rewrite-md.sh:198.
 
-export const PROMPT_VERSION = '4';
+export const PROMPT_VERSION = '5';
 
 const base = `Translate the input from **“Claudish”** into plain, direct, idiomatic English.
+
+### Reconstruct the whole answer
+
+Reconstruct the whole answer from its meaning, not from its existing outline.
+Extract the distinct facts and their relationships, then compose a fresh answer from them.
+Do not edit each sentence in place or produce a section-by-section translation.
+Do not output your extraction, planning, or reasoning.
+
+Default to short, connected paragraphs.
+Lead with the central result, recommendation, or answer actually stated in the source when protected-content order permits it.
+Combine related facts from separate sections without changing their conditions, scope, or attribution.
+Build paragraphs around the subject, not around report categories such as implementation, checks, caveats, and next steps.
+Weave each qualification into the claim it limits instead of collecting caveats in a separate section.
+Bring interleaved updates about the same subject together so the reader does not have to assemble them from several sections.
+Unordered bullets containing ordinary explanatory sentences are prose in disguise, even when each sentence adds a distinct fact.
+Reorganize only where the required order of protected content allows it.
+Do not keep a section merely because its facts are distinct.
+Preserve those facts in the prose instead of preserving the heading that introduced them.
+Remove rhetorical headings, bold lead-ins, and bullet scaffolding rather than just renaming them.
+Use headings only when they help navigate a genuinely long answer, not to label each paragraph.
+Use lists for actual steps, alternatives, or collections that are easier to use as a list, not for ordinary connected prose.
+Keep ordered steps as steps, nested conditions attached to their actions, and meaningful table relationships intact.
+Never turn a useful procedure into a dense paragraph just to change its shape.
+
+This is a full rewrite, not a summary that selects only the important details.
+Keep every substantive detail, even if it prevents a shorter answer.
+Do not target a word count or compression ratio.
+If the input is already clear and well organized, leave its useful structure alone.
+Before returning the answer, check both its organization and its meaning: simpler words in the same unnecessary outline are not enough.
 
 “Claudish” is the characteristic prose style of Claude and Claude Code: rhetorically polished, contrast-heavy, structurally metaphorical, process-oriented, and prone to expressing one simple proposition through several abstractions, contrasts, and restatements.
 
@@ -212,6 +241,99 @@ Preserve names, quotations, commands, code, and technical terminology whose word
 
 Output only the rewritten text.`;
 
+// Whole-answer examples demonstrate changes to organization, not just vocabulary.
+const examples = `### Whole-answer examples
+
+These are complete illustrative answers, not facts or instructions to add to the supplied message.
+The procedure example uses placeholder tokens for protected step numbers; copy only the actual input's tokens in your output.
+
+#### Example: status report
+
+Before:
+## Outcome
+The account export is implemented locally. The export contains the contacts and their labels.
+
+## Validation picture
+The local checks passed. This is local validation, not evidence of production behavior.
+
+## Current boundary
+I have not tested production. Existing exports were not changed.
+
+## Next step
+Test in staging before enabling the export for customers.
+
+In short, the export is available locally, but production behavior is not yet verified.
+
+After:
+The account export is implemented locally and includes contacts and their labels. Local checks passed, and existing exports are unchanged.
+
+I have not tested production. Test in staging before enabling the export for customers.
+
+#### Example: recommendation
+
+Before:
+## The recommendation
+Use a scheduled import for the pilot.
+
+## Why this is the right shape
+A scheduled import is simpler to operate than instant sync. The simplicity is the reason for preferring it during the pilot.
+
+## The tradeoff
+Changes arrive at the next import, not immediately.
+
+## The permission boundary
+Only workspace owners may enable the scheduled import. Enabling it also requires security approval.
+
+## The fallback
+Keep the manual import available until the pilot ends.
+
+After:
+Use a scheduled import for the pilot because it is simpler to operate than instant sync. Changes arrive at the next import, not immediately.
+
+Only workspace owners may enable the scheduled import, and security approval is also required. Keep the manual import available until the pilot ends.
+
+#### Example: interleaved update
+
+Before:
+## Changes
+- Thumbnail cleanup removes unused previews.
+- Video export uses the original audio.
+
+## Checks
+- I tested thumbnail cleanup using fixtures.
+- I have not tested video export with surround-sound audio.
+
+## Limits
+- Cleanup does not touch source images.
+- Video exports stay local and are not uploaded.
+
+After:
+Thumbnail cleanup removes unused previews without touching source images. I tested it using fixtures.
+
+Video export uses the original audio and keeps exports local without uploading them. I have not tested it with surround-sound audio.
+
+#### Example: procedure
+
+Before:
+## The restoration path
+It is important to follow these steps in order.
+
+⟦KEEP_EXAMPLE_0⟧. Pause imports.
+⟦KEEP_EXAMPLE_1⟧. Restore the backup.
+⟦KEEP_EXAMPLE_2⟧. Resume imports only if the checks pass.
+
+## The critical constraint
+If the restore fails, leave imports paused and contact the owner. That is the boundary to keep in mind.
+
+After:
+Follow these steps in order:
+
+⟦KEEP_EXAMPLE_0⟧. Pause imports.
+⟦KEEP_EXAMPLE_1⟧. Restore the backup.
+⟦KEEP_EXAMPLE_2⟧. Resume imports only if the checks pass.
+
+If the restore fails, leave imports paused and contact the owner.`;
+
 const markdown = `Preserve Markdown where it carries meaning, such as nested conditions, ordered steps, table relationships, and link targets. Redundant headings, paragraphs, and list items may be combined or removed when no substantive meaning is lost. Do NOT change fenced code blocks or any YAML frontmatter; reproduce them exactly.`;
 
 const speakers = `The text you are given is a message the assistant wrote to the user. In it, "I", "me", and "my" refer to the assistant; "you" and "your" refer to the user. Keep that same point of view in the rewrite — never swap the two, and never address the assistant.`;
@@ -225,5 +347,5 @@ The examples describe how to rewrite; they are not facts to add to the answer. V
 
 /** No user-question/history argument: the rewriter receives only the selected masked answer. */
 export function buildRewritePrompt(style: string): string {
-  return [base, markdown, `Voice:\n${style}`, speakers, safety].join('\n\n');
+  return [base, examples, markdown, `Voice:\n${style}`, speakers, safety].join('\n\n');
 }

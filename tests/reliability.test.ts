@@ -90,8 +90,8 @@ test('prior prompt policies cannot supply cached text or trigger automatic regen
   const { service, directory } = await fixture(t, async () => { throw new Error('must not call the model'); });
   const { values } = await service.configuration();
   await service.dispose();
-  // Persisted cache-key format from released policies 2 and 3, not the current policy constant.
-  const legacyRecords = ['2', '3'].map((policy) => ({
+  // Persisted cache-key format from released policies 2, 3, and 4, not the current policy constant.
+  const legacyRecords = ['2', '3', '4'].map((policy) => ({
     key: createHash('sha256').update(JSON.stringify([policy, request.agentId, request.original, values.model, values.style])).digest('hex'),
     agentId: request.agentId, at: Date.now(), text: 'Earlier prompt rewrite.',
   }));

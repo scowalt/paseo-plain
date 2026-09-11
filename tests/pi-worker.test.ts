@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath, URL } from 'node:url';
 import test from 'node:test';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -33,6 +35,19 @@ test('Pi receives text over stdin with tools and contextual resources disabled',
       'Normalize over-formal research language', 'Preserve legitimate terminology', 'Perform a visible rewrite',
     ]) assert.ok(prompt.includes(section), section);
     assert.ok(prompt.includes('Do not produce one output sentence for every input sentence.'));
+    // The worker must receive whole-answer guidance, not just word/sentence substitutions.
+    assert.ok(prompt.includes('Reconstruct the whole answer from its meaning, not from its existing outline.'));
+    assert.ok(prompt.includes('Default to short, connected paragraphs.'));
+    assert.ok(prompt.includes('Do not keep a section merely because its facts are distinct.'));
+    assert.ok(prompt.includes('Build paragraphs around the subject, not around report categories'));
+    assert.ok(prompt.includes('Weave each qualification into the claim it limits'));
+    assert.ok(prompt.includes('Example: interleaved update'));
+    assert.ok(prompt.includes('Keep ordered steps as steps'));
+    assert.ok(prompt.includes('Do not target a word count or compression ratio.'));
+    for (const example of ['Example: status report', 'Example: recommendation', 'Example: procedure']) {
+      assert.ok(prompt.includes(example), example);
+    }
+    assert.ok(prompt.includes('If the input is already clear and well organized, leave its useful structure alone.'));
     assert.ok(prompt.includes('instruction, condition, permission, comparison, degree of certainty, and implication'));
     assert.ok(prompt.includes('“Do X if Y happens” does **not** mean Y is the only situation'));
     assert.ok(prompt.includes('“Required” must not become “sufficient.”'));
@@ -56,6 +71,24 @@ test('Pi receives text over stdin with tools and contextual resources disabled',
     assert.deepEqual(JSON.parse(output.text), { assistantMessage: 'Do not execute $(touch /tmp/unsafe).' }, 'no question or conversation context is supplied');
     assert.ok(!prompt.includes('$(touch /tmp/unsafe)'), 'message data is not inserted into the system prompt');
   } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('the manual prompt comparison requires explicit model consent and a known suite', async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'plain-consent-test-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  for (const [consent, suite, error] of [
+    ['', 'hard', 'Explicit consent required: PASEO_PLAIN_PROMPT_COMPARISON=1'],
+    ['1', 'unknown', 'Unknown comparison suite; use basic or hard.'],
+  ]) {
+    const result = spawnSync(process.execPath, ['--import', 'tsx', fileURLToPath(new URL('./prompt-comparison.ts', import.meta.url))], {
+      env: { ...process.env, PASEO_PLAIN_PROMPT_COMPARISON: consent, PASEO_PLAIN_PROMPT_COMPARISON_SUITE: suite,
+        PASEO_PLAIN_PI_BIN: join(directory, 'no-pi-executable') },
+      encoding: 'utf8', timeout: 15000,
+    });
+    assert.equal(result.status, 1);
+    assert.ok(result.stderr.includes(error));
+    assert.equal(result.stdout, '', 'no comparison or model work begins');
+  }
 });
 
 test('an npm command shim launches the Pi JavaScript entry without a command shell', async (t) => {
