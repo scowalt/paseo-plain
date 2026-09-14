@@ -18,7 +18,8 @@ const theme = { colors: { foreground: '#fff', foregroundMuted: '#bbb', surface0:
 
 // Paseo 0.8 beta's promoteCompletedAssistantBlocks + sourceTimelineItem retain
 // messageId but pass each Markdown block separately to the public transformer.
-const blocks = ['The custom prompt combines preservation rules with this instruction:', '```text\nUse everyday words.\n```', 'The editable instruction is in settings.', 'This is our custom prompt.'];
+const tableBlock = '| Option | Reference |\n|---|---|\n| **Manual** | [Guide](https://example.com/guide) |';
+const blocks = ['The custom prompt combines preservation rules with this instruction:', '```text\nUse everyday words.\n```', 'The editable instruction is in settings.', tableBlock, 'This is our custom prompt.'];
 const original = blocks.join('\n\n');
 const rewritten = original.replace('combines preservation rules with this instruction', 'uses these rules');
 
@@ -56,6 +57,8 @@ test('one whole answer has one bottom button, not a control group after each Mar
     assert.ok(calls.filter((call) => call.name === 'plain.lookup').every((call) => call.input.original === original), 'cache queries use the whole answer, never Markdown fragments');
     assert.deepEqual(source.map((item) => item.text), blocks, 'source history is unchanged');
     assert.ok(json.includes('uses these rules'), 'the whole-message cached rewrite is used');
+    assert.equal(view.root.findAllByProps({ role: 'table' }).length, 1, 'the grouped rewrite renders its table exactly once');
+    assert.equal(view.root.findByProps({ accessibilityRole: 'link' }).props.href, 'https://example.com/guide');
     assert.equal(calls.filter((call) => ['plain.rewrite', 'plain.preview'].includes(call.name)).length, 0, 'viewing an answer never requests model work');
     await act(async () => view.root.findByProps({ accessibilityLabel: 'Plain English' }).props.onPress());
     await act(async () => view.root.findByProps({ accessibilityLabel: 'Show original' }).props.onPress());
@@ -99,9 +102,11 @@ test('grouped answers preserve every block on pending work, failure, streaming, 
       await act(async () => { view = create(render()); });
       await settle();
       const text = JSON.stringify(view.toJSON());
-      for (const paragraph of [blocks[0], 'Use everyday words.', blocks[2], blocks[3]]) {
+      for (const paragraph of [blocks[0], 'Use everyday words.', blocks[2], blocks.at(-1)!]) {
         assert.equal(text.split(paragraph).length - 1, 1, `${state}: each block remains visible exactly once`);
       }
+      assert.equal(view.root.findAllByProps({ role: 'table' }).length, 1, `${state}: original table stays formatted exactly once`);
+      assert.equal(view.root.findByProps({ accessibilityRole: 'link' }).props.href, 'https://example.com/guide');
       assert.equal(view.root.findAllByProps({ accessibilityRole: 'button' }).length, ['running', 'source-error'].includes(state) ? 0 : 1);
       assert.deepEqual(calls, [], 'viewing an uncached answer never requests model work');
       if (state === 'uncached') {

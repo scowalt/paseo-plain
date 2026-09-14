@@ -20,8 +20,8 @@ export function AnswerView({ original, result, theme, compact, defaultDisplay, o
   const showOriginal = !rewritten || mode !== 'rewrite';
   const showRewrite = !!rewritten && mode !== 'original';
   return <View style={{ gap: compact ? 8 : 10 }}>
-    {showOriginal && <View style={{ gap: 5 }}>{showRewrite && <Text style={{ color: theme.colors.foregroundMuted, fontSize: 12 }}>Original</Text>}<Markdown text={original} theme={theme} /></View>}
-    {showRewrite && <View style={{ gap: 5 }}>{showOriginal && <Text style={{ color: theme.colors.foregroundMuted, fontSize: 12 }}>Rewrite</Text>}<Markdown text={rewritten!} theme={theme} /></View>}
+    {showOriginal && <View style={{ gap: 5 }}>{showRewrite && <Text style={{ color: theme.colors.foregroundMuted, fontSize: 12 }}>Original</Text>}<Markdown text={original} theme={theme} compact={compact} /></View>}
+    {showRewrite && <View style={{ gap: 5 }}>{showOriginal && <Text style={{ color: theme.colors.foregroundMuted, fontSize: 12 }}>Rewrite</Text>}<Markdown text={rewritten!} theme={theme} compact={compact} /></View>}
     {result.status !== 'disabled' && <View style={{ gap: 5 }}>
       {expanded && <View style={{ gap: 5 }}>
         <Text style={{ color: theme.colors.foregroundMuted, fontSize: 11 }}>{rewritten ? 'Paseo Plain · display only' : result.status === 'pending' ? 'Rewriting… Original shown above.' : result.reason ?? 'Original · not rewritten'}</Text>

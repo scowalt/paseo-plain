@@ -40,6 +40,18 @@ Finishing turns, viewing messages, opening controls, copying, reconnecting, poll
 
 Disabling manual rewriting removes the display transformer within five seconds. Busy agents keep their original display because Paseo 0.8 beta does not reliably identify completed assistant-text fragments during streaming.
 
+## Message display
+
+The plugin renders both original answers and rewrites. Tables keep their columns, alignment, and inline formatting. Small screens scroll wide tables horizontally instead of squeezing the columns.
+
+HTTP and HTTPS links use browser links on web clients and the system URL opener on mobile clients. On iOS, paragraphs with links prioritize taps over text selection. Use the answer's copy control to copy those paragraphs. Local file paths refer to the daemon, not your phone or browser, so the plugin leaves those links inactive. Images show their alternative text without automatic downloads. The plugin never executes embedded HTML.
+
+In Paseo Desktop, right-click a link and select **Open Link in Browser** to use your computer's default browser. Normal clicks can open a Paseo window instead.
+
+Paseo 0.8 does not expose its Markdown renderer or Appearance typography through the [public plugin interface](https://paseo.sh/docs/plugins/v0.8/reference.md#timeline-items). The plugin uses Paseo's default prose size and line spacing, and inherits the surrounding font on web clients. Custom content sizes, native font preferences, and Paseo's file-opening behavior cannot pass through this interface. `client/markdown.tsx` keeps this replacement renderer separate from rewrite controls and model work. A public host renderer is the preferred replacement when Paseo provides one.
+
+For a display check without a model call, select **Display test (no model)** in the plugin settings. The fixed sample includes a table, a formatted link, and a code block. Try the sample in wide and compact clients, with light and dark themes. Make sure that the columns stay aligned and the link opens the Paseo guide. Compare the font with an ordinary message while the plugin is disabled. Automated tests do not establish acceptance in the actual Paseo clients.
+
 ## Prompt and preservation
 
 The built-in prompt in `server/prompt.ts` asks for a fresh whole-answer rewrite in English, not sentence-by-sentence word substitutions. It defaults to connected paragraphs and combines related facts across rhetorical sections. Each subject's changes, checks, and limits belong together instead of in separate report categories. Full-answer examples show this regrouping, status reports and recommendations becoming prose, and a useful procedure staying a list. Every substantive fact, condition, permission, comparison, uncertainty, and implication must remain. There is no target word count or compression ratio. See `CONTEXT.md` for the distinction between a rewrite and a summary.

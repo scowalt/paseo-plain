@@ -5,6 +5,7 @@ import { useRpc, type PluginSurfaceProps } from '@getpaseo/plugin/client';
 import { SettingsSection, SettingsSwitch, SettingsSelect } from '@getpaseo/plugin/client/ui';
 import { readConfiguration, saveConfiguration, clearCache, previewRewrite, lookupRewrite, type Configuration, type RewriteResult } from '../shared/contracts';
 import { AnswerView, Button } from './answer-view';
+import { displayExample } from './display-example';
 
 const example = 'The configuration change has been applied. I have not run the tests, so the fix is not yet verified.\n\nRun `npm test` before deploying.';
 
@@ -47,7 +48,7 @@ export function Settings({ theme, layout }: PluginSurfaceProps) {
         <Text style={label}>The display test makes no model call. Test Pi rewrite sends the sample below to your selected model and uses your account allowance. Enable rewriting and save first.</Text>
         <TextInput accessibilityLabel="Rewrite sample" multiline style={{ ...inputStyle, minHeight: 130 }} value={previewText} onChangeText={(text) => { setPreviewText(text); setRequested(null); setDemo(false); }} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}><Button label="Display test (no model)" theme={theme} onPress={() => { setDemo(true); setRequested(null); }} /><Button label="Test Pi rewrite" theme={theme} disabled={!query.data?.values.enabled || run.isPending || !previewText.trim() || previewText.length > 8000} onPress={() => { setDemo(false); setRequested(previewText); run.mutate({ original: previewText, revision: query.data?.revision }); }} /></View>
-        {demo && <AnswerView original="The operation completed." result={{ status: 'ready', text: 'It worked.' }} theme={theme} compact={layout.compact} defaultDisplay="compare" />}
+        {demo && <AnswerView original={displayExample.original} result={{ status: 'ready', text: displayExample.rewritten }} theme={theme} compact={layout.compact} defaultDisplay="compare" />}
         {!demo && (requested || run.isPending || run.isError) && <AnswerView key={requested ?? 'pending'} original={requested ?? previewText} result={run.isError || result.isError ? { status: 'failed', reason: 'Rewrite service unavailable. Showing the original.' } : result.data ?? { status: 'pending' } as RewriteResult} theme={theme} compact={layout.compact} defaultDisplay="compare" />}
       </SettingsSection>
     </>}

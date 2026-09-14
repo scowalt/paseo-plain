@@ -6,6 +6,7 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import type { PluginTheme } from '@getpaseo/plugin';
 registerHooks({ resolve(specifier, context, next) {
   if (specifier === 'react-native') return { url: new URL('./native.mjs', import.meta.url).href, shortCircuit: true };
+  if (specifier === '@getpaseo/plugin/client/react-native') return { url: new URL('./host.mjs', import.meta.url).href, shortCircuit: true };
   return next(specifier, context);
 } });
 const { AnswerView } = await import('../client/answer-view.tsx');

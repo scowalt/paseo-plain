@@ -3,3 +3,4 @@ export const useRpc = (contract) => (input) => globalThis.plainTestHost.rpc(cont
 export const useAgent = (_id, selector) => selector({ status: globalThis.plainTestHost.status });
 export const usePaseo = () => globalThis.plainTestHost.paseo;
 export const copyText = async (text) => { globalThis.plainTestHost.copied = text; };
+export const useToast = () => globalThis.plainTestToast ?? { error() {}, show() {} };
