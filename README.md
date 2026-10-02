@@ -54,7 +54,7 @@ For a display check without a model call, select **Display test (no model)** in 
 
 ## Prompt and preservation
 
-The built-in prompt in `server/prompt.ts` asks for a fresh whole-answer rewrite in English, not sentence-by-sentence word substitutions. It defaults to connected paragraphs and combines related facts across rhetorical sections. Each subject's changes, checks, and limits belong together instead of in separate report categories. Full-answer examples show this regrouping, status reports and recommendations becoming prose, and a useful procedure staying a list. Every substantive fact, condition, permission, comparison, uncertainty, and implication must remain. There is no target word count or compression ratio. See `CONTEXT.md` for the distinction between a rewrite and a summary.
+The built-in prompt in `server/prompt.ts` asks for a fresh whole-answer rewrite in English, not sentence-by-sentence word substitutions. It defaults to connected paragraphs and combines related facts across rhetorical sections. Each subject's changes, checks, and limits belong together instead of in separate report categories. Full-answer examples show this regrouping, status reports and recommendations becoming prose, and a useful procedure staying a list. Every substantive fact, condition, permission, comparison, uncertainty, and implication must remain. There is no target word count or compression ratio. See [GLOSSARY.md](GLOSSARY.md) for the distinction between a rewrite and a summary.
 
 **Voice instructions** is an additional style preference, not the full prompt. It is appended to the built-in prompt. Saved preferences survive updates. Exact-copy rules take precedence over style and compression.
 
@@ -104,6 +104,8 @@ The plugin never writes agent history, sends agent prompts, answers permissions,
 Paseo beta splits some answers into Markdown blocks with one message ID and no block index. The plugin resolves the complete answer and places one control at its final block. Missing or ambiguous IDs, repeated indistinguishable final blocks, and unavailable history leave the original visible without controls. History lookup is bounded to five pages of 200 items.
 
 ## Development
+
+Domain terminology lives in [GLOSSARY.md](GLOSSARY.md). For older domain documents, run `git mv CONTEXT.md GLOSSARY.md` and, if present, `git mv CONTEXT-MAP.md GLOSSARY-MAP.md`. Skills now look only for `GLOSSARY.md` and `GLOSSARY-MAP.md`.
 
 ```sh
 npm ci --ignore-scripts
